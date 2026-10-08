@@ -1,16 +1,16 @@
 /**
- * Fonction serverless Netlify — formulaire de contact via l'API Brevo.
+ * Fonction serverless VERCEL — formulaire de contact via l'API Brevo.
  *
- * Configuration (Netlify > Site configuration > Environment variables) :
- *   BREVO_API_KEY         (obligatoire) https://app.brevo.com/settings/keys/api
- *   BREVO_SENDER_EMAIL    (optionnel)   doit être vérifié dans Brevo
- *   BREVO_SENDER_NAME     (optionnel)
- *   BREVO_RECIPIENT_EMAIL (optionnel)   défaut = BREVO_SENDER_EMAIL
+ * Variables d'environnement (Vercel → Project → Settings → Environment Variables) :
+ *   BREVO_API_KEY          (obligatoire) https://app.brevo.com/settings/keys/api
+ *   BREVO_SENDER_EMAIL     (optionnel)   doit être vérifié dans Brevo
+ *   BREVO_SENDER_NAME      (optionnel)
+ *   BREVO_RECIPIENT_EMAIL  (optionnel)   défaut = BREVO_SENDER_EMAIL
  *
  * La clé n'est JAMAIS versionnée : elle vit uniquement dans l'environnement.
  *
- * Le formulaire de index.html envoie sur "contact.php" ; netlify.toml réécrit
- * cette route vers cette fonction.
+ * index.html envoie sur /api/contact ; vercel.json redirige en plus
+ * /contact.php vers cette fonction par sécurité.
  */
 
 const BREVO_URL = 'https://api.brevo.com/v3/smtp/email';
@@ -18,12 +18,10 @@ const SENDER_NAME = process.env.BREVO_SENDER_NAME || 'Espendi Piocel';
 const SENDER_EMAIL = process.env.BREVO_SENDER_EMAIL || 'espendidev@gmail.com';
 const RECIPIENT_EMAIL = process.env.BREVO_RECIPIENT_EMAIL || SENDER_EMAIL;
 
-function json(statusCode, body) {
-  return {
-    statusCode,
-    headers: { 'Content-Type': 'application/json; charset=utf-8' },
-    body: JSON.stringify(body),
-  };
+function send(res, statusCode, body) {
+  res.statusCode = statusCode;
+  res.setHeader('Content-Type', 'application/json; charset=utf-8');
+  return res.end(JSON.stringify(body));
 }
 
 function escapeHtml(value) {
@@ -32,10 +30,11 @@ function escapeHtml(value) {
   ));
 }
 
-function parseBody(event) {
-  const raw = event.isBase64Encoded
-    ? Buffer.from(event.body || '', 'base64').toString('utf8')
-    : (event.body || '');
+// Vercel analyse déjà le body (json + urlencoded) ; on couvre aussi
+// le cas d'une chaîne brute reçue sans parsing.
+function getParams(req) {
+  if (req.body && typeof req.body === 'object') return req.body;
+  const raw = typeof req.body === 'string' ? req.body : '';
   return Object.fromEntries(new URLSearchParams(raw));
 }
 
@@ -55,41 +54,41 @@ function renderEmail({ nom, email, sujet, message }) {
 </div>`;
 }
 
-exports.handler = async function handler(event) {
-  if (event.httpMethod !== 'POST') {
-    return json(405, { success: false, message: 'Methode non autorisee.' });
+module.exports = async function handler(req, res) {
+  if (req.method !== 'POST') {
+    return send(res, 405, { success: false, message: 'Méthode non autorisée.' });
   }
 
   let params;
   try {
-    params = parseBody(event);
+    params = getParams(req);
   } catch (err) {
-    return json(400, { success: false, message: 'Corps de requete invalide.' });
+    return send(res, 400, { success: false, message: 'Corps de requête invalide.' });
   }
 
-  // Honeypot anti-spam (champ cache rempli par les robots).
+  // Honeypot anti-spam (champ caché rempli par les robots).
   if (params.website) {
-    return json(200, { success: true, message: 'Message envoye !' });
+    return send(res, 200, { success: true, message: 'Message envoyé !' });
   }
 
-  const nom = (params.nom || '').trim();
-  const email = (params.email || '').trim();
-  const sujet = (params.sujet || '').trim();
-  const message = (params.message || '').trim();
+  const nom = String(params.nom || '').trim();
+  const email = String(params.email || '').trim();
+  const sujet = String(params.sujet || '').trim();
+  const message = String(params.message || '').trim();
 
   if (!nom || !email || !sujet || !message) {
-    return json(400, { success: false, message: 'Veuillez remplir tous les champs.' });
+    return send(res, 400, { success: false, message: 'Veuillez remplir tous les champs.' });
   }
   if (nom.length > 120 || sujet.length > 200 || message.length > 5000) {
-    return json(400, { success: false, message: 'Message trop long.' });
+    return send(res, 400, { success: false, message: 'Message trop long.' });
   }
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    return json(400, { success: false, message: 'Adresse email invalide.' });
+    return send(res, 400, { success: false, message: 'Adresse email invalide.' });
   }
 
   const apiKey = process.env.BREVO_API_KEY;
   if (!apiKey) {
-    return json(500, {
+    return send(res, 500, {
       success: false,
       message: 'Clé API Brevo non configurée. Contactez pioceldev@gmail.com directement.',
     });
@@ -104,7 +103,7 @@ exports.handler = async function handler(event) {
   };
 
   try {
-    const res = await fetch(BREVO_URL, {
+    const response = await fetch(BREVO_URL, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -114,16 +113,16 @@ exports.handler = async function handler(event) {
       body: JSON.stringify(payload),
     });
 
-    if (res.ok) {
-      return json(200, { success: true, message: 'Message envoyé ! Je vous répondrai rapidement.' });
+    if (response.ok) {
+      return send(res, 200, { success: true, message: 'Message envoyé ! Je vous répondrai rapidement.' });
     }
-    return json(500, {
+    return send(res, 500, {
       success: false,
       message: "Erreur lors de l'envoi. Réessayez ou écrivez à pioceldev@gmail.com.",
-      detail: 'Brevo status ' + res.status,
+      detail: 'Brevo status ' + response.status,
     });
   } catch (err) {
-    return json(500, {
+    return send(res, 500, {
       success: false,
       message: 'Erreur réseau. Réessayez ou écrivez à pioceldev@gmail.com.',
     });

@@ -11,21 +11,21 @@
     <meta name="theme-color" content="#09090b">
     <meta name="geo.region" content="BJ">
     <meta name="geo.placename" content="Cotonou">
-    <link rel="canonical" href="https://espendi-piocel.netlify.app/">
+    <link rel="canonical" href="https://espendi-piocel.vercel.app/">
     <link rel="icon" type="image/svg+xml" href="assets/img/favicon.svg">
     <link rel="icon" type="image/png" sizes="180x180" href="assets/img/favicon-180.png">
     <link rel="apple-touch-icon" href="assets/img/favicon-180.png">
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="Espendi.Devs">
-    <meta property="og:url" content="https://espendi-piocel.netlify.app/">
+    <meta property="og:url" content="https://espendi-piocel.vercel.app/">
     <meta property="og:title" content="Espendi Piocel HOUNKANLIN — Développeur Web & UX/UI Designer">
     <meta property="og:description" content="Développeur Web & UX/UI Designer à Cotonou (Bénin). Sites web, applications et interfaces modernes. Découvrez mes projets et services.">
-    <meta property="og:image" content="https://espendi-piocel.netlify.app/assets/img/profile.jpeg">
+    <meta property="og:image" content="https://espendi-piocel.vercel.app/assets/img/profile.jpeg">
     <meta property="og:locale" content="fr_FR">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="Espendi Piocel HOUNKANLIN — Développeur Web & UX/UI Designer">
     <meta name="twitter:description" content="Portfolio de Développeur Web & UX/UI Designer à Cotonou (Bénin).">
-    <meta name="twitter:image" content="https://espendi-piocel.netlify.app/assets/img/profile.jpeg">
+    <meta name="twitter:image" content="https://espendi-piocel.vercel.app/assets/img/profile.jpeg">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="preconnect" href="https://cdnjs.cloudflare.com">
@@ -38,8 +38,8 @@
       "@context": "https://schema.org",
       "@type": "Person",
       "name": "Espendi Piocel HOUNKANLIN",
-      "url": "https://espendi-piocel.netlify.app/",
-      "image": "https://espendi-piocel.netlify.app/assets/img/profile.jpeg",
+      "url": "https://espendi-piocel.vercel.app/",
+      "image": "https://espendi-piocel.vercel.app/assets/img/profile.jpeg",
       "jobTitle": "Développeur Web & UX/UI Designer",
       "email": "mailto:pioceldev@gmail.com",
       "address": {
@@ -668,7 +668,7 @@
                     </div>
 
                     <div class="contact-form reveal reveal-rtl" style="--d: 0.15s">
-                        <form action="contact.php" method="POST">
+                        <form action="/api/contact" method="POST">
                             <div class="form-group">
                                 <input type="text" name="nom" placeholder="Votre nom" required>
                             </div>
@@ -909,7 +909,7 @@ function setupContactForm() {
         submitBtn.disabled = true;
 
         try {
-            const response = await fetch('contact.php', {
+            const response = await fetch('/api/contact', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                 body: new URLSearchParams(new FormData(form)).toString()

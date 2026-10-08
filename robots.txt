@@ -2,4 +2,4 @@ User-agent: *
 Allow: /
 Disallow: /assets/
 
-Sitemap: https://espendipiocel.wuaze.com/sitemap.xml
+Sitemap: https://espendi-piocel.vercel.app/sitemap.xml

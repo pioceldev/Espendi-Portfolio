@@ -1,0 +1,7 @@
+# Les fichiers PHP ne sont PAS déployés sur Vercel :
+# le site est statique (index.html) et le formulaire passe par /api/contact.
+# Conserver index.php/contact.php dans le dépôt pour un hébergeur PHP.
+
+*.php
+dist/
+node_modules/
