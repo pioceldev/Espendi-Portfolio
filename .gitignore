@@ -11,6 +11,9 @@ vendor/
 package-lock.json
 composer.lock
 
+# --- Build de déploiement (généré par build.sh) ---
+dist/
+
 # --- Système ---
 .DS_Store
 Thumbs.db
