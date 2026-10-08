@@ -1,0 +1,26 @@
+# --- Environnement / secrets (ne jamais pousser) ---
+.env
+.env.*
+config.local.php
+config.local.json
+*.secret
+
+# --- Dépendances ---
+node_modules/
+vendor/
+package-lock.json
+composer.lock
+
+# --- Système ---
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# --- Éditeurs ---
+.vscode/
+.idea/
+
+# --- Logs / caches ---
+*.log
+.cache/
+tmp/
